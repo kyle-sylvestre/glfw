@@ -564,7 +564,7 @@ static void inputContextDestroyCallback(XIC ic, XPointer clientData, XPointer ca
 
 // Create the X11 window (and its colormap)
 //
-static GLFWbool createNativeWindow(_GLFWwindow* window,
+static GLFWbool x11_createNativeWindow(_GLFWwindow* window,
                                    const _GLFWwndconfig* wndconfig,
                                    Visual* visual, int depth)
 {
@@ -1082,7 +1082,7 @@ static const char* getSelectionString(Atom selection)
 
 // Make the specified window and its video mode active on its monitor
 //
-static void acquireMonitor(_GLFWwindow* window)
+static void x11_acquireMonitor(_GLFWwindow* window)
 {
     if (_glfw.x11.saver.count == 0)
     {
@@ -1121,7 +1121,7 @@ static void acquireMonitor(_GLFWwindow* window)
 
 // Remove the window and restore the original video mode
 //
-static void releaseMonitor(_GLFWwindow* window)
+static void x11_releaseMonitor(_GLFWwindow* window)
 {
     if (window->monitor->window != window)
         return;
@@ -1806,9 +1806,9 @@ static void processEvent(XEvent *event)
                     if (window->monitor)
                     {
                         if (iconified)
-                            releaseMonitor(window);
+                            x11_releaseMonitor(window);
                         else
-                            acquireMonitor(window);
+                            x11_acquireMonitor(window);
                     }
 
                     window->x11.iconified = iconified;
@@ -1993,7 +1993,7 @@ GLFWbool _glfwCreateWindowX11(_GLFWwindow* window,
         depth = DefaultDepth(_glfw.x11.display, _glfw.x11.screen);
     }
 
-    if (!createNativeWindow(window, wndconfig, visual, depth))
+    if (!x11_createNativeWindow(window, wndconfig, visual, depth))
         return GLFW_FALSE;
 
     if (ctxconfig->client != GLFW_NO_API)
@@ -2025,7 +2025,7 @@ GLFWbool _glfwCreateWindowX11(_GLFWwindow* window,
     {
         _glfwShowWindowX11(window);
         updateWindowMode(window);
-        acquireMonitor(window);
+        x11_acquireMonitor(window);
 
         if (wndconfig->centerCursor)
             _glfwCenterCursorInContentArea(window);
@@ -2050,7 +2050,7 @@ void _glfwDestroyWindowX11(_GLFWwindow* window)
         enableCursor(window);
 
     if (window->monitor)
-        releaseMonitor(window);
+        x11_releaseMonitor(window);
 
     if (window->x11.ic)
     {
@@ -2206,7 +2206,7 @@ void _glfwSetWindowSizeX11(_GLFWwindow* window, int width, int height)
     if (window->monitor)
     {
         if (window->monitor->window == window)
-            acquireMonitor(window);
+            x11_acquireMonitor(window);
     }
     else
     {
@@ -2477,7 +2477,7 @@ void _glfwSetWindowMonitorX11(_GLFWwindow* window,
         if (monitor)
         {
             if (monitor->window == window)
-                acquireMonitor(window);
+                x11_acquireMonitor(window);
         }
         else
         {
@@ -2496,7 +2496,7 @@ void _glfwSetWindowMonitorX11(_GLFWwindow* window,
     {
         _glfwSetWindowDecoratedX11(window, window->decorated);
         _glfwSetWindowFloatingX11(window, window->floating);
-        releaseMonitor(window);
+        x11_releaseMonitor(window);
     }
 
     _glfwInputWindowMonitor(window, monitor);
@@ -2511,7 +2511,7 @@ void _glfwSetWindowMonitorX11(_GLFWwindow* window,
         }
 
         updateWindowMode(window);
-        acquireMonitor(window);
+        x11_acquireMonitor(window);
     }
     else
     {
